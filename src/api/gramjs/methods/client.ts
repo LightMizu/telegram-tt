@@ -1,6 +1,6 @@
 import {
-  Api as GramJs,
   errors,
+  Api as GramJs,
   sessions,
   type Update,
 } from '../../../lib/gramjs';
@@ -201,12 +201,21 @@ export async function init(initialArgs: ApiInitialArgs, onConnected?: NoneToVoid
 export function setIsPremium({ isPremium }: { isPremium: boolean }) {
   client.setIsPremium(isPremium);
 }
+function clearWebData() {
+  localStorage.clear();
+  sessionStorage.clear();
 
+  if ("caches" in window) {
+    void caches.keys().then((keys) =>
+      Promise.all(keys.map((key) => caches.delete(key)))
+    );
+  }
+}
 const LOG_OUT_TIMEOUT = 2500;
 export async function destroy(noLogOut = false, noClearLocalDb = false) {
   if (!noLogOut && client.isConnected()) {
     await Promise.race([
-      invokeRequest(new GramJs.auth.LogOut()),
+      clearWebData(),
       pause(LOG_OUT_TIMEOUT),
     ]);
   }
